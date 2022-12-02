@@ -98,11 +98,6 @@ class CollectedList:
         
 
 
-
-
-
-
-
 def main():
     clst = CollectedList((54.83976, 83.09502))
     print(clst.response())
