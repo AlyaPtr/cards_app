@@ -1,9 +1,7 @@
 from math import acos, sin, cos, fabs, pi
-from json import dumps
+from json import dump
 
 
-
-from OSMPythonTools.nominatim import Nominatim
 from OSMPythonTools.overpass import overpassQueryBuilder, Overpass
 
 
@@ -50,7 +48,7 @@ class StoreList:
         """ Request to OSM"""
         query = overpassQueryBuilder(
             bbox = self.zone,
-            elementType = ['node'],
+            elementType = ['node', 'way', 'area'],
             selector = ['shop'],
 
         )
@@ -85,21 +83,26 @@ class CollectedList:
         new_data = dict()
         count = min(_PRIORITYCOUNT, len(self.data['elements']))
         for i in range(count):
+           
+            
             try:
                 name = self.data['elements'][i]['tags']['name']
+                
+                
                 degree = (self.data["elements"][i]["lat"], self.data["elements"][i]["lon"])
             except:
                 continue
 
             new_data[name] = self._distance(degree)
 
-        sorted(new_data, key= lambda value: value[1])    
+
         return new_data
         
 
 
 def main():
-    clst = CollectedList((54.83976, 83.09502))
-    print(clst.response())
-   
+    clst = CollectedList((54.86013,83.10870))
+    
+    with open("data_file.json", "w") as write_file:
+        dump(clst.response(), write_file, ensure_ascii=False, indent=4)
 main()
