@@ -1,25 +1,13 @@
 from math import acos, sin, cos, fabs, pi
+from json import dump
 
-from OSMPythonTools.nominatim import Nominatim
+
 from OSMPythonTools.overpass import overpassQueryBuilder, Overpass
-
 
 
 _RANGE = 0.00117
 _EARTH_RADIUS = 6371000
-
-
-#https://overpass-turbo.eu/# для проверки квадрата
-#https://habr.com/ru/company/vk/blog/591879/ язык разметки
-#http://bboxfinder.com/#54.840143,83.099232,54.842943,83.103631 генератор квадрата
-
-
-"""
-TODO:
-
-Пересобрать полученный с OSM ответ в новый json+посчитать расстояния до разумного количества элементов
-
-"""
+_PRIORITYCOUNT = 25
 
 
 class RangeBox:
@@ -60,21 +48,22 @@ class StoreList:
         """ Request to OSM"""
         query = overpassQueryBuilder(
             bbox = self.zone,
-            elementType = ['node'],
+            elementType = ['node', 'way', 'area'],
             selector = ['shop'],
 
         )
         return query
 
-    def printJSON(self):
+    def getData(self):
         return self.overpass.query(self.request()).toJSON()
 
 class CollectedList:
-    def __init__(self, current_possition, data):
-        self.data = data
+    def __init__(self, current_possition):
         self.position = current_possition
+
+        self.data = StoreList(RangeBox(self.position).get_box()).getData()
         
-    def distance(self, pos) -> float:
+    def _distance(self, pos) -> float:
         """ Calculating distance between 2 points using Spherical law of cosines.
 
         Keyword arguments:
@@ -85,22 +74,35 @@ class CollectedList:
 
         d = acos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(dLon))*_EARTH_RADIUS
         return d
+    
+    def response(self):
+        """Create response JSON(aka python dict from OSM data in format {name:distance})
 
-#0.00117
-# nominatim = Nominatim()
-# areaID = nominatim.query([83.100483,54.840505,83.103755,54.842266]).areaId()
+
+        """
+        new_data = dict()
+        count = min(_PRIORITYCOUNT, len(self.data['elements']))
+        for i in range(count):
+           
+            
+            try:
+                name = self.data['elements'][i]['tags']['name']
+                
+                
+                degree = (self.data["elements"][i]["lat"], self.data["elements"][i]["lon"])
+            except:
+                continue
+
+            new_data[name] = self._distance(degree)
+
+
+        return new_data
+        
+
 
 def main():
-    testBox = RangeBox((54.841543,83.101431)).get_box()
-    #print(testBox)
-    lst = StoreList(testBox).printJSON()
-    test = (lst["elements"][3]["lat"], lst["elements"][3]["lon"])
-    print(lst["elements"][3]["lat"], lst["elements"][3]["lon"], sep =" ")
-    clst = CollectedList((54.843, 83.0907), []).distance(test)
-    print(clst)
-    # query = overpassQueryBuilder(bbox=[54.841470,83.101153,54.842415,83.102790],elementType='node', selector="shop", out='body')
-    # print(query)
-    # overpass = Overpass()
-    # shops = overpass.query(query)
-    # print(shops.toJSON())
+    clst = CollectedList((54.86013,83.10870))
+    
+    with open("data_file.json", "w") as write_file:
+        dump(clst.response(), write_file, ensure_ascii=False, indent=4)
 main()
