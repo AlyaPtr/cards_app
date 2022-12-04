@@ -25,15 +25,9 @@ import barcode
 from barcode.ean import EAN13
 from barcode.codex import Code128
 from barcode.itf import ITF #I25
-#I25
+
 # pip install qrcode
-# pip install pymaging-psd
-# qrcode
 import qrcode
-#from qrcode.image.pure import PymagingImage
-# pip install pdf417decoder
-#pdf417
-from barcode.writer import ImageWriter
 
 class CardScaner(BoxLayout):
     def __init__(self, **kwargs):
