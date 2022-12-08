@@ -1,114 +1,91 @@
-from kivy.app import App
-from kivy.uix.widget import Widget
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.properties import ObjectProperty
-from kivy.lang import Builder
-from kivy.uix.popup import Popup
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivymd.app import MDApp
-from kivymd.uix.button import MDFloatingActionButton
-import sqlite3
 import hashlib
-from kivymd.theming import ThemeManager
-from kivymd.uix.label import label
-from kivymd.app import MDApp
-from kivymd.uix.label import MDLabel
-from kivy.metrics import dp
-from kivy.uix.behaviors import TouchRippleBehavior
-from kivy.uix.button import Button
+import sqlite3
 from kivy.lang import Builder
-from kivymd.uix.button import MDRectangleFlatButton
-
+from kivy.uix.screenmanager import ScreenManager
+from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.textfield import MDTextField
+from kivymd.uix.screenmanager import MDScreenManager
 
 try:
     conn = sqlite3.connect('../db/database.db')
     cur = conn.cursor()
 
-    # class to call the popup function
-    def btn():
-        pop_fun()
 
-    # class to build GUI for a popup window
-    class P(FloatLayout):
-        pass
+    class LoginScreen(MDScreen):
+        def signup_on_press(self):
+            self.root.current = 'signup page'
 
-    # function that displays the content
-    def pop_fun():
-        show = P()
-        window = Popup(title="popup", content=show, size_hint=(None, None), size=(300, 300))
-        window.open()
+        def clear(self):
+            print("clear")
+            self.root.ids.user.text = ""
+            self.root.ids.password.text = ""
 
-    # class to accept user info and validate it
-    class LoginWindow(Screen):
-        email = ObjectProperty(None)
-        pwd = ObjectProperty(None)
+        def logger(self):
 
-        def validate(self):
+            print("logger")
 
-            statement = f"SELECT login from authorisation WHERE login='{self.email.text}' AND password = '{hashlib.sha224(self.pwd.text.encode()).hexdigest()}';"
+            self.root.ids.welcome_label.text = "Вход"
+            self.root.current = 'login page'
+
+            email = self.root.ids.user.text
+            pwd = self.root.ids.password.text
+
+            print(email)
+            print(pwd)
+
+            statement = f"SELECT login from authorisation WHERE login='{email}' AND password = '{hashlib.sha224(pwd.encode()).hexdigest()}';"
             cur.execute(statement)
-
-            # validating if the email already exists
-            if not cur.fetchone():  # An empty result evaluates to False.
-                pop_fun()
+            if not cur.fetchone():
+                self.root.ids.welcome_label.text = f'Вы ввели неверный логин или пароль'
             else:
-                # switching the current screen to display validation result
-                sm.current = 'logdata'
+                self.root.ids.welcome_label.text = f'Sup {email}!'
+            self.clear()
 
-                # reset TextInput widget
-                self.email.text = ""
-                self.pwd.text = ""
+    class SignUpScreen(MDScreen):
+        def login_on_press(self):
+            self.root.current = 'login page'
 
-    # class to accept sign up info
-    class SignupWindow(Screen):
-        email = ObjectProperty(None)
-        pwd = ObjectProperty(None)
+        def clear(self):
+            print("clear")
+            self.root.ids.user.text = ""
+            self.root.ids.password.text = ""
+        def sign_up(self):
+            self.root.ids.welcome_label.text = "Регистрация"
+            self.root.current = 'signup page'
 
-        def signup_btn(self):
-            statement = f"SELECT login from authorisation WHERE login='{self.email.text}';"
+            email = self.root.ids.user.text
+            pwd = self.root.ids.password.text
+
+            print(email)
+            print(pwd)
+
+            statement = f"SELECT login from authorisation WHERE login='{email}';"
             cur.execute(statement)
 
-            if self.email.text != "":
+            if email != "":
                 if not cur.fetchone():
-                    statement = f"INSERT INTO authorisation(login, password) VALUES('{self.email.text}', '{hashlib.sha224(self.pwd.text.encode()).hexdigest()}');"
+                    statement = f"INSERT INTO authorisation(login, password) VALUES('{email}', '{hashlib.sha224(pwd.encode()).hexdigest()}');"
                     cur.execute(statement)
                     conn.commit()
             else:
-                # if values are empty or invalid show pop up
-                pop_fun()
+                self.root.ids.welcome_label.text = f'Пользователь с такой электронной почтой уже существует'
+                self.root.ids.user.text = ""
+                self.root.ids.password.text = ""
 
-    # class to display validation result
-    class LogDataWindow(Screen):
-        pass
-
-    # class for managing screens
-    class WindowManager(ScreenManager):
-        pass
-
-
-    # kv file
-    kv = Builder.load_file('auth.kv')
-    sm = WindowManager()
-
-    # reading all the data stored
-    # users = pd.read_csv('login.csv')
-
-    # adding screens
-    sm.add_widget(LoginWindow(name='login'))
-    sm.add_widget(SignupWindow(name='signup'))
-    sm.add_widget(LogDataWindow(name='logdata'))
-
-    # class that builds gui
-    class AuthMain(App):
+    class MainApp(MDApp):
         def build(self):
+            self.theme_cls.theme_style = "Dark"
+            self.theme_cls.primary_palette = "BlueGray"
+            Builder.load_file('auth.kv')
+            sm = ScreenManager()
+            sm.add_widget(LoginScreen(name='login'))
+            sm.add_widget(SignUpScreen(name='signup'))
+
             return sm
 
 
-    if __name__ == "__main__":
-        AuthMain().run()
+    MainApp().run()
+
 except sqlite3.Error as error:
     print("Ошибка при подключении к sqlite: ", error)
 finally:
