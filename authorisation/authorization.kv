@@ -1,0 +1,135 @@
+<LoginScreen>:
+    MDCard:
+        size_hint: None, None
+        size: 300, 400
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        elevation: 10
+        padding: 25
+        spacing: 25
+        orientation: 'vertical'
+        MDLabel:
+            id: welcome_label
+            text: "Log in"
+            font_size: 40
+            halign: 'center'
+            size_hint_y: None
+            height: self.texture_size[1]
+            padding_y: 40
+        MDTextField:
+            id: user
+            hint_text: "username"
+            icon_right: "account"
+            size_hint_x: None
+            width: 200
+            font_size: 18
+            pos_hint: {"center_x": 0.5}
+        MDTextField:
+            id: password
+            hint_text: "password"
+            icon_right: "eye-off"
+            size_hint_x: None
+            width: 200
+            font_size: 18
+            pos_hint: {"center_x": 0.5}
+            password: True
+        MDRoundFlatButton:
+            text: "LOG IN"
+            font_size: 12
+            pos_hint: {"center_x": 0.5}
+            on_press:
+                root.logger()
+                root.ids.user.text = ""
+                root.ids.password.text = ""
+        MDRoundFlatButton:
+            text: "CLEAR"
+            font_size: 12
+            pos_hint: {"center_x": 0.5}
+            on_press:
+                root.ids.user.text = ""
+                root.ids.password.text = ""
+        MDRoundFlatButton:
+            text: "SIGN UP"
+            font_size: 12
+            pos_hint: {"center_x": 0.5}
+            on_press: root.manager.current = 'signup_screen'
+<SignUpScreen>:
+    MDCard:
+        size_hint: None, None
+        size: 300, 400
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        elevation: 10
+        padding: 25
+        spacing: 25
+        orientation: 'vertical'
+        MDLabel:
+            id: welcome_label
+            text: "Регистрация"
+            font_size: 40
+            halign: 'center'
+            size_hint_y: None
+            height: self.texture_size[1]
+            padding_y: 15
+        MDTextField:
+            id: user
+            hint_text: "электронная почта"
+            icon_right: "account"
+            size_hint_x: None
+            width: 200
+            font_size: 18
+            pos_hint: {"center_x": 0.5}
+        MDTextField:
+            id: password
+            hint_text: "пароль"
+            icon_right: "eye-off"
+            size_hint_x: None
+            width: 200
+            font_size: 18
+            pos_hint: {"center_x": 0.5}
+            password: True
+        MDRoundFlatButton:
+            text: "войти"
+            font_size: 12
+            pos_hint: {"center_x": 0.5}
+            on_press: root.manager.current = 'login_screen'
+        MDRoundFlatButton:
+            text: "CLEAR"
+            font_size: 12
+            pos_hint: {"center_x": 0.5}
+            on_press:
+                root.ids.user.text = ""
+                root.ids.password.text = ""
+        MDRoundFlatButton:
+            text: "SIGN UP"
+            font_size: 12
+            pos_hint: {"center_x": 0.5}
+            on_press:
+                app.sign_up()
+                root.ids.user.text = ""
+                root.ids.password.text = ""
+    Widget:
+        size_hint_y: None
+        height: 10
+<ConnectedScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+
+        MDLabel:
+            text: "You are now connected"
+            font_size: 32
+        MDRoundFlatButton:
+            text: "Disconnect"
+            font_size: 24
+            on_press: root.disconnect()
+GridLayout:
+    cols: 1
+    ScreenManager:
+        id: screen_manager
+        LoginScreen:
+            name: 'login_screen'
+            id: login_screen
+        SignUpScreen:
+            name: 'signup_screen'
+            id: signup_screen
+        ConnectedScreen:
+            name: 'connected_screen'
+            id: connected_screen
